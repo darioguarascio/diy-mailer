@@ -1,0 +1,49 @@
+name: diy-mailer
+
+services:
+  opendkim:
+    build:
+      context: ./opendkim
+    restart: unless-stopped
+    environment:
+      DKIM_DOMAIN: ${DKIM_DOMAIN:-}
+      DKIM_SELECTOR: ${DKIM_SELECTOR:-mail}
+      MAIL_DOMAIN: ${MAIL_DOMAIN:-}
+    expose:
+      - "12345"
+    volumes:
+      - .data/dkim:/etc/opendkim/keys
+      - ./domains.conf:/etc/opendkim/domains.conf:ro
+    networks:
+      - mailer
+
+  mailer:
+    build:
+      context: ./postfix
+    restart: unless-stopped
+    depends_on:
+      - opendkim
+    ports:
+      - "${SMTP_BIND:-127.0.0.1:25:25}"
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /var/spool/postfix:noexec,nosuid
+      - /tmp:noexec,nosuid
+    environment:
+      MAIL_DOMAIN: ${MAIL_DOMAIN}
+      MAIL_HOSTNAME: ${MAIL_HOSTNAME}
+      SMTP_RELAY_MYNETWORKS: ${SMTP_RELAY_MYNETWORKS:-127.0.0.0/8 172.16.0.0/12 172.20.0.0/16 10.0.0.0/8}
+      DKIM_MILTER_HOST: ${DKIM_MILTER_HOST:-opendkim}
+      DKIM_MILTER_PORT: ${DKIM_MILTER_PORT:-12345}
+      MAIL_INET_PROTOCOLS: ${MAIL_INET_PROTOCOLS:-ipv4}
+      BOUNCE_LOG: ${BOUNCE_LOG:-/var/log/bounces.log}
+    volumes:
+      - .data/mailer:/var/log
+    networks:
+      - mailer
+
+networks:
+  mailer:
+    driver: bridge

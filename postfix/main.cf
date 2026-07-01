@@ -1,0 +1,38 @@
+compatibility_level = 3.6
+
+smtpd_banner = $myhostname ESMTP
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+
+myhostname = smtp.mail.example.com
+mydomain = example.com
+myorigin = $mydomain
+inet_interfaces = all
+inet_protocols = ipv4
+
+mydestination = localhost
+relayhost =
+
+alias_maps = lmdb:/etc/postfix/aliases
+alias_database = lmdb:/etc/postfix/aliases
+
+smtpd_recipient_restrictions = permit_mynetworks,reject_unauth_destination
+
+mailbox_size_limit = 0
+recipient_delimiter = +
+
+maillog_file = /var/log/mail.log
+
+# Opportunistic TLS for outbound delivery
+smtp_tls_security_level = may
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+
+# DKIM signing via OpenDKIM milter
+milter_protocol = 6
+milter_default_action = accept
+smtpd_milters = inet:opendkim:12345
+non_smtpd_milters = $smtpd_milters
+
+# Log bounces and deferrals
+notify_classes = resource, software, bounce

@@ -1,0 +1,6 @@
+# Sending domains — one per line: domain|hostname|selector
+# The first entry is the primary domain (Postfix default envelope identity).
+# Use the SAME hostname for every domain (shared A + PTR + HELO):
+#
+# example.com|mail.example.com|mail
+# other.com|mail.example.com|mail

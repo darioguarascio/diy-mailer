@@ -1,0 +1,6 @@
+.env
+.env.*
+domains.conf
+.data/
+*.bak
+*.local
